@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#050b12" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Water Dragon" />
+    <meta
+      name="description"
+      content="Water Dragon charts names, dates of birth, numbers, and Chinese astrology animals on this phone."
+    />
+    <title>Water Dragon</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+    <main class="app">
+      <header class="brand">
+        <button type="button" id="home-btn" class="brand-btn">
+          <img class="brand-mark" src="icons/icon-192.png" alt="" />
+          <span>Water Dragon</span>
+        </button>
+        <button type="button" id="all-names" class="btn ghost brand-all" hidden>
+          All names
+        </button>
+      </header>
+
+      <section id="gate" class="card gate">
+        <p class="eyebrow">Water Dragon</p>
+        <h2>Choose a path</h2>
+        <p class="lede">Numbers charts names and dates. Cards deals a Water Dragon deck. RV tests remote viewing against chance.</p>
+        <div class="gate-actions">
+          <button type="button" id="open-numbers" class="gate-btn" aria-label="Numbers">
+            <span class="gate-btn-number" aria-hidden="true">8</span>
+            <span class="gate-btn-label">Numbers</span>
+          </button>
+          <button type="button" id="open-cards" class="gate-btn" aria-label="Cards">
+            <span class="gate-btn-deck" aria-hidden="true">
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+            </span>
+            <span class="gate-btn-label">Cards</span>
+          </button>
+          <button type="button" id="open-rv" class="gate-btn gate-btn-span" aria-label="RV Remote Viewing">
+            <span class="gate-btn-rv" aria-hidden="true">
+              <span class="rv-rings"></span>
+              <span class="gate-btn-number gate-btn-rv-letters">RV</span>
+            </span>
+            <span class="gate-btn-label">Remote Viewing</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="home" class="card" hidden>
+        <div class="home-intro">
+          <p class="eyebrow">Saved on this phone</p>
+          <h2>Names</h2>
+          <p class="lede home-lede-phone">Tap a name to open their chart.</p>
+          <p class="lede home-lede-desk">
+            Open a chart from the list. Drag names into the group to see Glynis
+            compatibility: natural match, compatible, neutral, or challenge.
+          </p>
+        </div>
+        <div class="home-desk">
+          <div class="home-left">
+            <ul id="people-list" class="people-list"></ul>
+            <p id="empty-list" class="empty" hidden>No names saved yet.</p>
+            <button type="button" id="add-person" class="btn primary">Add a name</button>
+            <div class="backup-row">
+              <button type="button" class="btn ghost backup-export">Save a copy</button>
+              <button type="button" class="btn ghost backup-import">Load a copy</button>
+            </div>
+            <p class="backup-status" hidden></p>
+          </div>
+          <aside id="compat-board" class="compat-board">
+            <p class="panel-label">Group</p>
+            <p class="compat-legend">
+              <span class="compat-key natural">Natural</span>
+              <span class="compat-key compatible">Compatible</span>
+              <span class="compat-key neutral">Neutral</span>
+              <span class="compat-key challenge">Challenge</span>
+            </p>
+            <p class="compat-legend-note">
+              Glynis scores six points: Soul, Personality, Power Name, Birth Day,
+              Life Path, and Attitude. Same triad (Mind 1-5-7, Business 2-4-8,
+              Creative 3-6-9) is a natural match. Compatible still works with a
+              little stretch. Neutral is sideways. Challenge is an opposite pull
+              — agree to disagree on that point.
+            </p>
+            <div id="compat-drop" class="compat-drop">
+              <div id="compat-chips" class="compat-chips"></div>
+              <p id="compat-empty" class="compat-empty">Drag names here to mix them.</p>
+            </div>
+            <div id="compat-ra" class="compat-ra" hidden>
+              <p class="panel-label">Ra · 18-day cycle</p>
+              <canvas
+                id="compat-ra-wave"
+                class="compat-ra-wave"
+                aria-label="Eighteen-day sine waves for the group"
+              ></canvas>
+              <ul id="compat-ra-legend" class="compat-ra-legend"></ul>
+            </div>
+            <div id="compat-viz" class="compat-viz"></div>
+            <button type="button" id="compat-clear" class="btn ghost" hidden>Clear group</button>
+          </aside>
+        </div>
+      </section>
+
+      <section id="cards" class="cards-page" hidden>
+        <div class="cards-board">
+          <div class="cards-rail">
+            <button type="button" id="cards-shuffle" class="btn primary">Shuffle</button>
+            <p class="cards-left" id="cards-left"></p>
+            <button type="button" id="cards-deck" class="cards-deck" aria-label="Draw the next card">
+              <span class="cards-deck-stack" aria-hidden="true">
+                <img src="cards/back.jpg" alt="" />
+                <img src="cards/back.jpg" alt="" />
+                <img src="cards/back.jpg" alt="" />
+              </span>
+              <span class="cards-deck-label">Draw</span>
+            </button>
+          </div>
+          <div id="cards-spread" class="cards-spread">
+            <div class="spread-slot" data-slot="Past">
+              <p class="spread-name">Past</p>
+              <button type="button" class="spread-face" aria-label="Past"></button>
+            </div>
+            <div class="spread-slot spread-additional" data-slot="Additional">
+              <p class="spread-name">Additional</p>
+              <div id="cards-extra" class="spread-extra-faces"></div>
+            </div>
+            <div class="spread-slot" data-slot="Subject">
+              <p class="spread-name">Subject</p>
+              <button type="button" class="spread-face" aria-label="Subject"></button>
+            </div>
+            <div class="spread-slot" data-slot="Present">
+              <p class="spread-name">Present</p>
+              <button type="button" class="spread-face" aria-label="Present"></button>
+            </div>
+            <div class="spread-slot" data-slot="Influences">
+              <p class="spread-name">Influences</p>
+              <button type="button" class="spread-face" aria-label="Influences"></button>
+            </div>
+            <div class="spread-slot" data-slot="Advice">
+              <p class="spread-name">Advice</p>
+              <button type="button" class="spread-face" aria-label="Advice"></button>
+            </div>
+            <div class="spread-slot" data-slot="Future">
+              <p class="spread-name">Future</p>
+              <button type="button" class="spread-face" aria-label="Future"></button>
+            </div>
+            <div class="spread-slot" data-slot="Outcome">
+              <p class="spread-name">Outcome</p>
+              <button type="button" class="spread-face" aria-label="Outcome"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rv" class="card rv-page" hidden>
+        <p class="eyebrow">Remote viewing</p>
+        <h2>RV</h2>
+        <p class="lede">
+          Enter your name, then play. Color and shapes use a Water Dragon
+          deck. Scores save under that name on this phone.
+        </p>
+
+        <article class="rv-game rv-player-card">
+          <p class="panel-label">Who is playing</p>
+          <p class="meaning">Name the person whose scores these runs belong to.</p>
+          <label class="field">
+            <span>Name</span>
+            <input
+              id="rv-player-name"
+              type="text"
+              maxlength="60"
+              required
+              autocomplete="name"
+              autocapitalize="words"
+              enterkeyhint="done"
+              placeholder="Alex"
+              list="rv-player-names"
+            />
+            <datalist id="rv-player-names"></datalist>
+          </label>
+          <button type="button" id="rv-clear-scores" class="btn ghost" disabled>Clear scores</button>
+          <p class="rv-live" id="rv-player-live">Enter a name to start a game.</p>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Number skew</p>
+          <p class="meaning">
+            A target digit is given. For one minute this phone draws 0–9 at
+            speed. Try to pull the stream toward that number. After the minute,
+            the counts show whether it leaned.
+          </p>
+          <div class="rv-skew-heroes" id="rv-skew-heroes">
+            <div>
+              <p class="rv-kicker">Target</p>
+              <p class="rv-target-number" id="rv-skew-target">—</p>
+            </div>
+            <div id="rv-skew-rank-wrap" hidden>
+              <p class="rv-kicker">Rank</p>
+              <p class="rv-target-number" id="rv-skew-rank"></p>
+            </div>
+          </div>
+          <p class="rv-live" id="rv-skew-live">Enter a name, then start a one-minute run.</p>
+          <div class="rv-skew-visual">
+            <canvas
+              id="rv-skew-clock"
+              class="rv-skew-clock"
+              hidden
+              aria-label="Seconds left in the minute"
+            ></canvas>
+            <canvas
+              id="rv-skew-chart"
+              class="rv-skew-chart"
+              hidden
+              aria-label="How many times each number was drawn"
+            ></canvas>
+          </div>
+          <p class="meaning" id="rv-skew-result"></p>
+          <p class="rv-best" id="rv-skew-best" hidden></p>
+          <button type="button" id="rv-skew-start" class="btn primary" disabled>Start one minute</button>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Color deck</p>
+          <p class="meaning">
+            Pick four colors, then shuffle. The deck is fifty-two cards,
+            thirteen of each. Guess the next color. Hits stay hidden until you
+            show results or finish the deck.
+          </p>
+          <div class="rv-color-picks" id="rv-color-picks">
+            <label class="rv-color-pick-wrap">
+              <span class="rv-kicker">1</span>
+              <input type="color" class="rv-color-pick" value="#5eb8c8" aria-label="Color 1" />
+            </label>
+            <label class="rv-color-pick-wrap">
+              <span class="rv-kicker">2</span>
+              <input type="color" class="rv-color-pick" value="#e8f4f6" aria-label="Color 2" />
+            </label>
+            <label class="rv-color-pick-wrap">
+              <span class="rv-kicker">3</span>
+              <input type="color" class="rv-color-pick" value="#3d9b8f" aria-label="Color 3" />
+            </label>
+            <label class="rv-color-pick-wrap">
+              <span class="rv-kicker">4</span>
+              <input type="color" class="rv-color-pick" value="#163044" aria-label="Color 4" />
+            </label>
+          </div>
+          <p class="rv-live" id="rv-color-status">Enter a name, pick four colors, then shuffle.</p>
+          <div class="rv-deck-face" id="rv-color-face" hidden>
+            <span class="rv-deck-stack" aria-hidden="true">
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+            </span>
+          </div>
+          <div class="rv-color-choices" id="rv-color-choices"></div>
+          <div class="rv-color-recap" id="rv-color-recap" hidden></div>
+          <p class="meaning" id="rv-color-result"></p>
+          <p class="rv-best" id="rv-color-best" hidden></p>
+          <div class="rv-color-actions">
+            <button type="button" id="rv-color-start" class="btn primary" disabled>Shuffle a deck</button>
+            <button type="button" id="rv-color-results" class="btn ghost" hidden>Show results</button>
+          </div>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Blind color</p>
+          <p class="meaning">
+            Put the blindfold on after start. Space opens a solid color
+            chosen from the four above. Left is the first color, up the
+            second, right the third, down the fourth. Space again picks a
+            new color. Ten guesses, or Escape or Stop, ends the run and
+            shows the chart.
+          </p>
+          <div class="rv-blind-map" id="rv-blind-map"></div>
+          <p class="rv-live" id="rv-blind-status">Enter a name, then start.</p>
+          <div class="rv-color-recap" id="rv-blind-recap" hidden></div>
+          <canvas
+            id="rv-blind-chart"
+            class="rv-blind-chart"
+            hidden
+            aria-label="Correct guesses for each color"
+          ></canvas>
+          <p class="meaning" id="rv-blind-result"></p>
+          <p class="rv-best" id="rv-blind-best" hidden></p>
+          <div class="rv-color-actions">
+            <button type="button" id="rv-blind-start" class="btn primary" disabled>Start</button>
+            <button type="button" id="rv-blind-stop" class="btn ghost" hidden>Stop</button>
+          </div>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Shapes deck</p>
+          <p class="meaning">
+            A twenty-five card deck of the five common remote viewing
+            shapes: circle, plus, waves, square, and star. Five of each.
+            Guess the next shape. Hits stay hidden until you show results
+            or finish the deck.
+          </p>
+          <p class="rv-live" id="rv-shape-status">Enter a name, then shuffle a deck.</p>
+          <div class="rv-deck-face" id="rv-shape-face" hidden>
+            <span class="rv-deck-stack" aria-hidden="true">
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+              <img src="cards/back.jpg" alt="" />
+            </span>
+          </div>
+          <div class="rv-shape-choices" id="rv-shape-choices"></div>
+          <div class="rv-color-recap" id="rv-shape-recap" hidden></div>
+          <p class="meaning" id="rv-shape-result"></p>
+          <p class="rv-best" id="rv-shape-best" hidden></p>
+          <div class="rv-color-actions">
+            <button type="button" id="rv-shape-start" class="btn primary" disabled>Shuffle a deck</button>
+            <button type="button" id="rv-shape-results" class="btn ghost" hidden>Show results</button>
+          </div>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Remote View</p>
+          <p class="meaning">
+            Generate a target, or type a code: four capital letters or
+            digits, a hyphen, then four more letters or digits. Add notes
+            and attributes for what you view on that target.
+          </p>
+          <button type="button" id="rv-view-generate" class="btn primary" disabled>Generate Target</button>
+          <label class="field">
+            <span>Target code</span>
+            <input
+              id="rv-view-code"
+              type="text"
+              maxlength="9"
+              spellcheck="false"
+              autocomplete="off"
+              autocapitalize="characters"
+              enterkeyhint="done"
+              placeholder="A3K9-B7Q2"
+              pattern="[A-Z0-9]{4}-[A-Z0-9]{4}"
+              inputmode="text"
+              aria-describedby="rv-view-live"
+            />
+          </label>
+          <p class="rv-live" id="rv-view-live">Enter a name, then generate or type a target.</p>
+          <div class="rv-view-notes-head">
+            <p class="rv-kicker">Notes</p>
+            <button type="button" id="rv-view-add-note" class="rv-view-plus" aria-label="Add a note">+</button>
+          </div>
+          <div id="rv-view-notes" class="rv-view-notes"></div>
+        </article>
+
+        <article class="rv-game">
+          <p class="panel-label">Record on this phone</p>
+          <p class="rv-best" id="rv-record-bests" hidden></p>
+          <ul id="rv-record" class="rv-record"></ul>
+          <p class="empty" id="rv-record-empty">No runs yet.</p>
+        </article>
+      </section>
+
+      <section id="entry" class="card" hidden>
+        <p class="eyebrow" id="form-eyebrow">New chart</p>
+        <h2 id="form-title">Add a name</h2>
+        <p class="lede">
+          Save the name they go by and a date of birth. Water Dragon uses Glynis McCants’
+          Pythagorean blueprint: three numbers from the name, three from the date.
+        </p>
+        <form id="person-form">
+          <input type="hidden" id="person-id" value="" />
+          <label class="field">
+            <span>Name</span>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              required
+              maxlength="60"
+              autocomplete="name"
+              autocapitalize="words"
+              enterkeyhint="next"
+              placeholder="Alex"
+            />
+          </label>
+          <label class="field">
+            <span>Birth certificate name</span>
+            <input
+              id="legal-name"
+              name="legal-name"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+              autocapitalize="words"
+              placeholder="Optional, for Destiny"
+            />
+          </label>
+          <p class="hint">
+            Soul, Personality, and Power Name use the name they go by. Destiny uses
+            the full birth-certificate name. Leave blank to use the same name.
+          </p>
+          <fieldset class="field date-field">
+            <legend>Date of birth</legend>
+            <label class="subfield">
+              <span>Month</span>
+              <select id="month" name="month" required>
+                <option value="" disabled selected>Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </label>
+            <div class="date-parts">
+              <label class="subfield">
+                <span>Day</span>
+                <select id="day" name="day" required>
+                  <option value="" disabled selected>Day</option>
+                </select>
+              </label>
+              <label class="subfield">
+                <span>Year</span>
+                <input
+                  id="year"
+                  name="year"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="4"
+                  minlength="4"
+                  required
+                  autocomplete="bday-year"
+                  placeholder="2008"
+                  enterkeyhint="done"
+                />
+              </label>
+            </div>
+            <p class="hint">Type the year, like 2008.</p>
+          </fieldset>
+          <label class="check-field">
+            <input type="checkbox" id="is-asset" name="is-asset" />
+            <span>This is a crypto or stock</span>
+          </label>
+          <label class="field" id="ticker-field" hidden>
+            <span>Ticker</span>
+            <input
+              id="ticker"
+              name="ticker"
+              type="text"
+              maxlength="24"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="BTC, AAPL, or NASDAQ:AAPL"
+            />
+            <p class="hint">
+              Required for a crypto or stock. Use the exchange if you know it,
+              like BINANCE:ETHUSDT or NASDAQ:AAPL.
+            </p>
+            <p class="hint ticker-error" id="ticker-error" hidden></p>
+          </label>
+          <button type="submit" class="btn primary" id="save-btn">
+            Save on this phone
+          </button>
+          <button type="button" id="cancel-form" class="btn ghost">Cancel</button>
+        </form>
+        <div class="backup-row">
+          <button type="button" class="btn ghost backup-export">Save a copy</button>
+          <button type="button" class="btn ghost backup-import">Load a copy</button>
+        </div>
+        <p class="backup-status" hidden></p>
+        <p class="fine">
+          Stays in this phone’s browser storage. Save a .json copy so you can load
+          the names again if this phone clears them.
+        </p>
+      </section>
+
+      <section id="result" class="result" hidden>
+        <p class="eyebrow" id="saved-date"></p>
+        <h2 class="person-heading" id="person-name"></h2>
+
+        <article class="number-panel">
+          <p class="panel-label">Life Path</p>
+          <p class="number" id="life-number"></p>
+          <p class="number-title" id="number-title"></p>
+          <p class="meaning" id="number-meaning"></p>
+          <p class="unbalanced-label" id="unbalanced-label">When not balanced</p>
+          <p class="meaning unbalanced" id="number-unbalanced"></p>
+          <p class="panel-label root-label" id="number-root-label" hidden></p>
+          <p class="number-title" id="number-title-root" hidden></p>
+          <p class="meaning" id="number-meaning-root" hidden></p>
+          <p class="unbalanced-label" id="unbalanced-label-root" hidden>When not balanced</p>
+          <p class="meaning unbalanced" id="number-unbalanced-root" hidden></p>
+          <details class="fold">
+            <summary>
+              <span class="show-label">Show description</span>
+              <span class="hide-label">Hide description</span>
+            </summary>
+            <div class="fold-body">
+              <p class="meaning" id="number-meaning-long"></p>
+              <p class="panel-label root-label" id="number-long-root-label" hidden></p>
+              <p class="meaning" id="number-meaning-long-root" hidden></p>
+              <p class="gary-note" id="number-gary"></p>
+            </div>
+          </details>
+          <details class="fold" id="number-jobs-fold">
+            <summary>
+              <span class="show-label">Show jobs</span>
+              <span class="hide-label">Hide jobs</span>
+            </summary>
+            <div class="fold-body">
+              <ul id="number-jobs" class="job-list"></ul>
+            </div>
+          </details>
+        </article>
+
+        <article class="animal-panel">
+          <p class="panel-label">Chinese astrology</p>
+          <figure class="portrait">
+            <img id="animal-image" alt="" />
+          </figure>
+          <h2 id="animal-name"></h2>
+          <p class="animal-hanzi" id="animal-hanzi"></p>
+          <p class="animal-meta" id="animal-meta"></p>
+          <p class="meaning" id="animal-meaning"></p>
+          <details class="fold">
+            <summary>
+              <span class="show-label">Show more</span>
+              <span class="hide-label">Show less</span>
+            </summary>
+            <div class="fold-body">
+              <p class="gary-note" id="animal-gary"></p>
+            </div>
+          </details>
+
+          <div class="year-now">
+            <p class="panel-label">This lunar year</p>
+            <div class="year-row">
+              <figure class="portrait year-portrait">
+                <img id="year-animal-image" alt="" />
+              </figure>
+              <div class="year-copy">
+                <h3 id="year-animal-name"></h3>
+                <p class="animal-meta" id="year-animal-meta"></p>
+                <p class="year-tag" id="year-relation"></p>
+              </div>
+            </div>
+            <p class="meaning" id="year-effect"></p>
+            <p class="year-allies" id="year-allies"></p>
+          </div>
+        </article>
+
+        <article class="cycles-panel">
+          <p class="panel-label">This year, month, and day</p>
+          <p class="cycle-world" id="cycle-world"></p>
+          <ol id="cycle-cards" class="cycle-cards"></ol>
+        </article>
+
+        <article class="ra-panel">
+          <p class="panel-label">Ra · 18-day cycle</p>
+          <p class="number ra-number" id="ra-day"></p>
+          <p class="number-title" id="ra-title"></p>
+          <p class="meaning" id="ra-gist"></p>
+          <canvas id="ra-wave" class="ra-wave" aria-label="Eighteen-day sine wave"></canvas>
+          <p class="ra-legend" id="ra-legend"></p>
+          <details class="fold">
+            <summary>
+              <span class="show-label">Show more</span>
+              <span class="hide-label">Show less</span>
+            </summary>
+            <div class="fold-body">
+              <p class="meaning" id="ra-about"></p>
+            </div>
+          </details>
+        </article>
+
+        <article class="numbers-sheet">
+          <p class="panel-label">Glynis blueprint</p>
+          <p class="number-line" id="number-line"></p>
+          <p class="number-line-legend" id="number-line-legend"></p>
+          <ol id="number-details" class="number-details"></ol>
+          <p class="panel-label extra-label">Destiny and maturity</p>
+          <ol id="extra-details" class="number-details"></ol>
+          <p class="cycle-line" id="cycle-line"></p>
+        </article>
+
+        <article class="gary-sheet">
+          <p class="panel-label">Gary the Numbers Guy</p>
+          <p class="number-line" id="gary-line"></p>
+          <p class="number-line-legend" id="gary-line-legend">
+            Life Path · Day · Attitude · Lucky number
+          </p>
+          <p class="meaning" id="gary-match"></p>
+          <p class="gary-mismatch" id="gary-mismatch" hidden></p>
+          <details class="fold">
+            <summary>
+              <span class="show-label">Show Gary's calculations</span>
+              <span class="hide-label">Hide Gary's calculations</span>
+            </summary>
+            <div class="fold-body" id="gary-calcs"></div>
+          </details>
+        </article>
+
+        <article class="calc-sheet">
+          <details class="fold calc-fold">
+            <summary>
+              <span class="show-label">Show calculations</span>
+              <span class="hide-label">Hide calculations</span>
+            </summary>
+            <div class="fold-body">
+              <p class="panel-label">Calculations</p>
+              <p class="lede calc-lede">
+                Pythagoras chart: A J S = 1, B K T = 2, C L U = 3, D M V = 4,
+                E N W = 5, F O X = 6, G P Y = 7, H Q Z = 8, I R = 9. Y is a vowel
+                when it is not next to A, E, I, O, or U. Master numbers 11, 22, and
+                33 are kept, and also read as 11/2, 22/4, 33/6. Glynis adds the
+                digits of each date part. Gary adds every digit, and he also adds
+                month + day + year as whole numbers (2 + 8 + 2008 = 2018 → 11).
+                He keeps 11, 22, or 33 from either pass. He keeps the 11th and
+                22nd as master days instead of splitting them.
+              </p>
+              <p class="letter-row" id="letter-chips"></p>
+              <div id="calc-steps" class="calc-steps"></div>
+              <p class="meaning" id="cycle-meta"></p>
+            </div>
+          </details>
+        </article>
+
+        <div class="actions">
+          <button type="button" id="edit" class="btn ghost">Edit</button>
+          <button type="button" id="remove" class="btn text">Remove this name</button>
+        </div>
+      </section>
+    </main>
+    <input
+      id="backup-file"
+      type="file"
+      accept="application/json,.json,text/json"
+      hidden
+    />
+    <dialog id="month-cal" class="month-cal">
+      <div class="month-cal-bar">
+        <button type="button" id="month-cal-prev" class="month-cal-nav" aria-label="Previous month">‹</button>
+        <div class="month-cal-heading">
+          <p class="panel-label" id="month-cal-title">Month</p>
+          <p class="month-cal-sub" id="month-cal-sub"></p>
+        </div>
+        <button type="button" id="month-cal-next" class="month-cal-nav" aria-label="Next month">›</button>
+        <button type="button" id="month-cal-close" class="month-cal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="month-cal-weekdays" aria-hidden="true">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div id="month-cal-grid" class="month-cal-grid"></div>
+      <p class="month-cal-legend">
+        Fill is the Ra 18-day wave: bright peak, soft up-side, gold ring on 9 and 18, dim down-side.
+        The small number is the Personal Day. Aqua = natural with Life Path. Outline = challenge with Life Path.
+      </p>
+      <div id="month-cal-detail" class="month-cal-detail"></div>
+    </dialog>
+    <dialog id="candle-cal" class="month-cal candle-cal">
+      <div class="month-cal-bar">
+        <button type="button" id="candle-cal-prev" class="month-cal-nav" aria-label="Previous">‹</button>
+        <div class="month-cal-heading">
+          <p class="panel-label" id="candle-cal-title">Candle chart</p>
+          <p class="month-cal-sub" id="candle-cal-sub"></p>
+        </div>
+        <button type="button" id="candle-cal-next" class="month-cal-nav" aria-label="Next">›</button>
+        <button type="button" id="candle-cal-close" class="month-cal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="candle-mode" role="tablist" aria-label="Top chart">
+        <button type="button" id="candle-mode-numbers" class="btn primary" aria-pressed="true">Numbers</button>
+        <button type="button" id="candle-mode-cards" class="btn ghost" aria-pressed="false">Cards</button>
+      </div>
+      <p class="panel-label" id="candle-predict-label">Predicted month</p>
+      <canvas id="candle-predict" class="candle-predict" aria-label="Predicted candlestick chart"></canvas>
+      <p class="month-cal-legend" id="candle-predict-legend"></p>
+      <p class="panel-label">Real chart · TradingView</p>
+      <div id="candle-tv" class="candle-tv"></div>
+    </dialog>
+    <dialog id="rv-blind-modal" class="rv-blind-modal" aria-label="Blind color">
+      <div class="rv-blind-pad">
+        <button type="button" class="rv-blind-dir" data-blind="up" aria-label="Up, second color">↑</button>
+        <button type="button" class="rv-blind-dir" data-blind="left" aria-label="Left, first color">←</button>
+        <button type="button" class="rv-blind-next" data-blind="next" aria-label="Next color">Space</button>
+        <button type="button" class="rv-blind-dir" data-blind="right" aria-label="Right, third color">→</button>
+        <button type="button" class="rv-blind-dir" data-blind="down" aria-label="Down, fourth color">↓</button>
+      </div>
+    </dialog>
+    <dialog id="card-info" class="card-info">
+      <button type="button" id="card-info-close" class="month-cal-close" aria-label="Close">✕</button>
+      <img id="card-info-image" class="card-info-image" alt="" />
+      <h3 id="card-info-name"></h3>
+      <p class="meaning" id="card-info-meaning"></p>
+      <p class="card-info-meta" id="card-info-meta"></p>
+      <p class="card-info-meta" id="card-info-yesno"></p>
+      <p class="card-info-meta" id="card-info-sig"></p>
+    </dialog>
+    <script src="cards-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
