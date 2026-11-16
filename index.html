@@ -36,7 +36,7 @@
       <section id="gate" class="card gate">
         <p class="eyebrow">Water Dragon</p>
         <h2>Choose a path</h2>
-        <p class="lede">Numbers charts names and dates. Cards deals a Water Dragon deck. RV tests remote viewing against chance.</p>
+        <p class="lede">Numbers charts names and dates. Cards deals a Water Dragon deck. RV tests remote viewing against chance. Feed posts today’s numbers and cards for each topic.</p>
         <div class="gate-actions">
           <button type="button" id="open-numbers" class="gate-btn" aria-label="Numbers">
             <span class="gate-btn-number" aria-hidden="true">8</span>
@@ -50,12 +50,20 @@
             </span>
             <span class="gate-btn-label">Cards</span>
           </button>
-          <button type="button" id="open-rv" class="gate-btn gate-btn-span" aria-label="RV Remote Viewing">
+          <button type="button" id="open-rv" class="gate-btn" aria-label="RV Remote Viewing">
             <span class="gate-btn-rv" aria-hidden="true">
               <span class="rv-rings"></span>
               <span class="gate-btn-number gate-btn-rv-letters">RV</span>
             </span>
             <span class="gate-btn-label">Remote Viewing</span>
+          </button>
+          <button type="button" id="open-feed" class="gate-btn" aria-label="Feed">
+            <span class="gate-btn-feed" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="gate-btn-label">Feed</span>
           </button>
         </div>
       </section>
@@ -164,6 +172,37 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <section id="feed" class="card feed-page" hidden>
+        <div class="feed-head">
+          <p class="eyebrow">Today</p>
+          <h2>Feed</h2>
+          <p class="lede">
+            Follow a topic. Each post is today’s numerology, chart if it
+            matches a saved name or ticker, a card-derived month, and a
+            card reading.
+          </p>
+          <form id="feed-form" class="feed-compose">
+            <label class="field">
+              <span>Topic</span>
+              <input
+                id="feed-topic"
+                name="topic"
+                type="text"
+                required
+                maxlength="80"
+                autocomplete="off"
+                autocapitalize="sentences"
+                enterkeyhint="done"
+                placeholder="A topic to follow"
+              />
+            </label>
+            <button type="submit" class="btn primary">Add</button>
+          </form>
+        </div>
+        <ul id="feed-list" class="x-feed"></ul>
+        <p id="feed-empty" class="empty">No topics yet.</p>
       </section>
 
       <section id="rv" class="card rv-page" hidden>

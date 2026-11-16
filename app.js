@@ -371,6 +371,7 @@ const entryEl = document.getElementById("entry");
 const resultEl = document.getElementById("result");
 const cardsEl = document.getElementById("cards");
 const rvEl = document.getElementById("rv");
+const feedEl = document.getElementById("feed");
 const formEl = document.getElementById("person-form");
 const nameEl = document.getElementById("name");
 const monthEl = document.getElementById("month");
@@ -1969,6 +1970,7 @@ function showOnly(el) {
   resultEl.hidden = el !== resultEl;
   if (cardsEl) cardsEl.hidden = el !== cardsEl;
   if (rvEl) rvEl.hidden = el !== rvEl;
+  if (feedEl) feedEl.hidden = el !== feedEl;
   document.querySelector(".app")?.classList.toggle("app-cards", el === cardsEl);
   if (el !== rvEl) {
     stopSkewRun();
@@ -3666,6 +3668,7 @@ document.getElementById("home-btn").addEventListener("click", showGate);
 document.getElementById("open-numbers")?.addEventListener("click", openNumbers);
 document.getElementById("open-cards")?.addEventListener("click", showCardsPage);
 document.getElementById("open-rv")?.addEventListener("click", showRvPage);
+document.getElementById("open-feed")?.addEventListener("click", showFeedPage);
 document.getElementById("all-names").addEventListener("click", showHome);
 document.getElementById("edit").addEventListener("click", () => {
   const store = loadStore();
@@ -5728,6 +5731,457 @@ document.getElementById("rv-view-code")?.addEventListener("input", onViewCodeInp
 document.getElementById("rv-view-add-note")?.addEventListener("click", addViewNote);
 document.getElementById("rv-view-notes")?.addEventListener("click", onViewNotesClick);
 document.getElementById("rv-view-notes")?.addEventListener("input", onViewNotesInput);
+
+const FEED_STORAGE_KEY = "waterdragon.feed.v1";
+const FEED_READING_SLOTS = ["Subject", "Present", "Advice"];
+
+function emptyFeedStore() {
+  return { topics: [] };
+}
+
+function normalizeFeedTitle(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function loadFeedStore() {
+  try {
+    const raw = localStorage.getItem(FEED_STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && Array.isArray(data.topics)) {
+        data.topics = data.topics.filter((topic) => {
+          if (!topic || !topic.id) return false;
+          const title = normalizeFeedTitle(topic.title);
+          if (!title) return false;
+          topic.title = title;
+          return true;
+        });
+        return data;
+      }
+    }
+  } catch {
+    /* empty */
+  }
+  return emptyFeedStore();
+}
+
+function saveFeedStore(store) {
+  localStorage.setItem(FEED_STORAGE_KEY, JSON.stringify(store));
+}
+
+function isoDayKey(now = new Date()) {
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function topicHashtag(title) {
+  const compact = String(title || "").replace(/\s+/g, "").replace(/[^A-Za-z0-9]/g, "");
+  return compact ? `#${compact}` : String(title || "");
+}
+
+function cloneDeckCards() {
+  const source = typeof DECK_CARDS !== "undefined" ? DECK_CARDS : [];
+  return source.map((card) => ({ ...card }));
+}
+
+function shuffleListWithRng(list, rng) {
+  for (let i = list.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    const hold = list[i];
+    list[i] = list[j];
+    list[j] = hold;
+  }
+  return list;
+}
+
+function tickerCore(raw) {
+  const t = normalizeTicker(raw);
+  if (!t) return "";
+  const name = t.includes(":") ? t.split(":")[1] : t;
+  return name.replace(/USDT$|USD$/, "");
+}
+
+function findTopicPerson(title) {
+  const people = loadStore().people || [];
+  const key = normalizeFeedTitle(title).toLocaleLowerCase();
+  const tick = normalizeTicker(title);
+  const core = tickerCore(title);
+  return (
+    people.find((person) => {
+      if (person.name && person.name.toLocaleLowerCase() === key) return true;
+      if (tick && person.ticker && normalizeTicker(person.ticker) === tick) return true;
+      if (core && person.ticker && tickerCore(person.ticker) === core) return true;
+      return false;
+    }) || null
+  );
+}
+
+function nameNumerology(name) {
+  const goingBy = nameLetterSums(name);
+  const soul = processSum(goingBy.vowelSum);
+  const personality = processSum(goingBy.consonantSum);
+  const power = processSum(goingBy.vowelSum + goingBy.consonantSum);
+  return { soul, personality, power };
+}
+
+function topicCycleFromPower(power, now = new Date()) {
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  const worldYear = simpleReduce(sumDigitString(String(y)));
+  const personalYear = simpleReduce(worldYear + simpleDigit(power));
+  const personalMonth = simpleReduce(personalYear + m);
+  const personalDay = simpleReduce(personalMonth + d);
+  return { worldYear, personalYear, personalMonth, personalDay };
+}
+
+function feedDayCopy(dayNumber) {
+  const info = CYCLE_MEANINGS[dayNumber];
+  if (!info) return `Number ${dayNumber}`;
+  return `${dayNumber} ${info.title}. ${info.gist}`;
+}
+
+function shortCardMeaning(meaning) {
+  const parts = String(meaning || "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.slice(0, 2).join(", ");
+}
+
+function topicCardReading(topic, now = new Date()) {
+  const rng = rngFrom(hashSeed(`${topic.id}|${isoDayKey(now)}|reading`));
+  const deck = shuffleListWithRng(cloneDeckCards(), rng);
+  return FEED_READING_SLOTS.map((slot, index) => ({
+    slot,
+    card: deck[index] || null,
+  })).filter((row) => row.card);
+}
+
+function topicCardMonthBars(topic, now = new Date()) {
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const today = now.getDate();
+  const rng = rngFrom(hashSeed(`${topic.id}|${y}|${m}|cardchart`));
+  const deck = shuffleListWithRng(cloneDeckCards(), rng);
+  const bars = [];
+  let close = 100;
+  const max = daysInMonth(y, m);
+  for (let d = 1; d <= max; d += 1) {
+    const card = deck[d - 1];
+    const bar = candleFromCard(card, close, 0.02);
+    if (d === today) bar.mark = true;
+    close = bar.close;
+    bars.push({ d, ...bar });
+  }
+  return bars;
+}
+
+function appendFeedLine(host, className, text) {
+  if (!text) return;
+  const p = document.createElement("p");
+  p.className = className;
+  p.textContent = text;
+  host.append(p);
+}
+
+function buildFeedPostModel(topic, now = new Date()) {
+  const person = findTopicPerson(topic.title);
+  const chart = person ? chartFor(person) : null;
+  const nameNums = nameNumerology(topic.title);
+  const nums = chart ? chart.numbers : nameNums;
+  const cycles = chart
+    ? {
+        worldYear: nums.worldYear,
+        personalYear: nums.personalYear,
+        personalMonth: nums.personalMonth,
+        personalDay: nums.personalDay,
+      }
+    : topicCycleFromPower(nameNums.power, now);
+  const reading = topicCardReading(topic, now);
+  const present = reading.find((row) => row.slot === "Present") || reading[0];
+  const cardBars = topicCardMonthBars(topic, now);
+  const numberBars =
+    person && isAssetPerson(person)
+      ? predictMonthCandles(person, now.getFullYear(), now.getMonth() + 1)
+      : null;
+  return {
+    topic,
+    person,
+    chart,
+    nameNums,
+    nums,
+    cycles,
+    reading,
+    present,
+    cardBars,
+    numberBars,
+    now,
+  };
+}
+
+function feedNumerologyLine(model) {
+  const { chart, nums, nameNums } = model;
+  const soul = displayNumber(nums.soul);
+  const personality = displayNumber(nums.personality);
+  const power = displayNumber(nums.power);
+  const powerTitle = titleFor(nums.power || nameNums.power);
+  if (chart) {
+    return `Numerology · Life Path ${displayNumber(chart.number)} ${titleFor(chart.number)} · Soul ${soul} · Personality ${personality} · Power ${power}`;
+  }
+  return `Numerology · Soul ${soul} · Personality ${personality} · Power ${power} ${powerTitle}`;
+}
+
+function feedChartLine(model) {
+  const { person, chart } = model;
+  if (!person || !chart) return "";
+  const animal = `${chart.sign.element} ${chart.sign.animal.name}`;
+  if (isAssetPerson(person)) {
+    return `Chart · ${normalizeTicker(person.ticker)} · ${animal} · Life Path ${displayNumber(chart.number)}`;
+  }
+  return `Chart · ${person.name} · ${animal} · Life Path ${displayNumber(chart.number)}`;
+}
+
+function feedDayLine(model) {
+  const day = model.cycles.personalDay;
+  const prefix = model.chart ? "Personal Day" : "Topic day";
+  return `Today · ${prefix} ${feedDayCopy(day)}`;
+}
+
+function appendFeedChart(media, label, bars, aria) {
+  if (!bars || !bars.length) return;
+  const wrap = document.createElement("div");
+  wrap.className = "x-chart-wrap";
+  const kicker = document.createElement("p");
+  kicker.className = "panel-label";
+  kicker.textContent = label;
+  const canvas = document.createElement("canvas");
+  canvas.className = "feed-chart";
+  canvas.setAttribute("aria-label", aria);
+  canvas._feedBars = bars;
+  wrap.append(kicker, canvas);
+  media.append(wrap);
+}
+
+function renderFeedPost(topic, now = new Date()) {
+  const model = buildFeedPostModel(topic, now);
+  const item = document.createElement("li");
+  const post = document.createElement("article");
+  post.className = "x-post";
+  post.dataset.topicId = topic.id;
+
+  const avatar = document.createElement("img");
+  avatar.className = "x-avatar";
+  avatar.src = "icons/icon-192.png";
+  avatar.alt = "";
+
+  const main = document.createElement("div");
+  main.className = "x-main";
+
+  const head = document.createElement("div");
+  head.className = "x-head";
+  const byline = document.createElement("div");
+  byline.className = "x-byline";
+  const name = document.createElement("span");
+  name.className = "x-name";
+  name.textContent = "Water Dragon";
+  const meta = document.createElement("span");
+  meta.className = "x-meta";
+  meta.textContent = `@waterdragon · ${now.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  })}`;
+  byline.append(name, meta);
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "x-remove";
+  removeBtn.setAttribute("aria-label", `Remove ${topic.title}`);
+  removeBtn.textContent = "✕";
+  removeBtn.addEventListener("click", () => removeFeedTopic(topic.id));
+  head.append(byline, removeBtn);
+
+  appendFeedLine(main, "x-topic", topicHashtag(topic.title));
+  appendFeedLine(main, "x-line", feedNumerologyLine(model));
+  appendFeedLine(main, "x-line", feedDayLine(model));
+  appendFeedLine(main, "x-line", feedChartLine(model));
+
+  if (model.reading.length) {
+    const kicker = document.createElement("span");
+    kicker.className = "x-kicker";
+    kicker.textContent = "Today’s reading";
+    main.append(kicker);
+    model.reading.forEach((row) => {
+      const meaning = shortCardMeaning(row.card.meaning);
+      appendFeedLine(
+        main,
+        "x-line",
+        meaning ? `${row.slot} · ${row.card.name} — ${meaning}` : `${row.slot} · ${row.card.name}`
+      );
+    });
+    if (model.present && model.present.card) {
+      appendFeedLine(
+        main,
+        "x-line",
+        `Yes / No · ${cardYesNo(model.present.card)}`
+      );
+    }
+  }
+
+  const media = document.createElement("div");
+  media.className = "x-media";
+  if (model.reading.length) {
+    const cards = document.createElement("div");
+    cards.className = "x-cards";
+    model.reading.forEach((row) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "x-card-btn";
+      btn.setAttribute("aria-label", `${row.slot}: ${row.card.name}`);
+      const img = document.createElement("img");
+      img.src = row.card.image;
+      img.alt = row.card.name;
+      btn.append(img);
+      btn.addEventListener("click", () => openCardInfo(row.card));
+      cards.append(btn);
+    });
+    media.append(cards);
+  }
+  const monthName = MONTH_NAMES[now.getMonth()];
+  const upCount = model.cardBars.filter((bar) => bar.up).length;
+  appendFeedChart(
+    media,
+    `Card month · ${monthName}`,
+    model.cardBars,
+    `Card-derived chart for ${topic.title} in ${monthName}`
+  );
+  if (model.numberBars) {
+    appendFeedChart(
+      media,
+      `Numbers month · ${normalizeTicker(model.person.ticker)}`,
+      model.numberBars,
+      `Numbers chart for ${topic.title} in ${monthName}`
+    );
+  }
+  if (media.childElementCount) main.append(media);
+
+  const cardLegend = model.cardBars.length
+    ? `${upCount} up days, ${model.cardBars.length - upCount} down. Gold ring is today.`
+    : "";
+  appendFeedLine(main, "x-line", cardLegend);
+
+  post.append(avatar, main);
+  main.prepend(head);
+  item.append(post);
+  return item;
+}
+
+function drawFeedCanvas(canvas) {
+  if (canvas && canvas._feedBars) drawPredictCandles(canvas, canvas._feedBars);
+}
+
+function drawFeedCharts() {
+  document.querySelectorAll("canvas.feed-chart").forEach(drawFeedCanvas);
+}
+
+let feedChartObserver = null;
+
+function observeFeedCharts() {
+  if (typeof ResizeObserver === "undefined") return;
+  if (feedChartObserver) feedChartObserver.disconnect();
+  feedChartObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.contentRect.width >= 8) drawFeedCanvas(entry.target);
+    });
+  });
+  document.querySelectorAll("canvas.feed-chart").forEach((canvas) => {
+    feedChartObserver.observe(canvas);
+  });
+}
+
+function renderFeed() {
+  const list = document.getElementById("feed-list");
+  const empty = document.getElementById("feed-empty");
+  if (!list || !empty) return;
+  const store = loadFeedStore();
+  list.replaceChildren();
+  empty.hidden = store.topics.length > 0;
+  const now = new Date();
+  store.topics.forEach((topic) => {
+    list.append(renderFeedPost(topic, now));
+  });
+  observeFeedCharts();
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(drawFeedCharts);
+  });
+}
+
+function showFeedPage() {
+  showOnly(feedEl);
+  renderFeed();
+  const input = document.getElementById("feed-topic");
+  if (input) input.focus();
+}
+
+function addFeedTopic(rawTitle) {
+  const title = normalizeFeedTitle(rawTitle);
+  const input = document.getElementById("feed-topic");
+  if (!title) {
+    if (input) {
+      input.setCustomValidity("Enter a topic");
+      input.reportValidity();
+    }
+    return false;
+  }
+  const store = loadFeedStore();
+  const key = title.toLocaleLowerCase();
+  const exists = store.topics.some(
+    (topic) => topic.title.toLocaleLowerCase() === key
+  );
+  if (exists) {
+    if (input) {
+      input.setCustomValidity("That topic is already in the feed");
+      input.reportValidity();
+    }
+    return false;
+  }
+  store.topics.unshift({
+    id: newId(),
+    title,
+    savedAt: new Date().toISOString(),
+  });
+  saveFeedStore(store);
+  renderFeed();
+  return true;
+}
+
+function removeFeedTopic(id) {
+  const store = loadFeedStore();
+  const topic = store.topics.find((item) => item.id === id);
+  if (!topic) return;
+  if (!window.confirm(`Remove ${topic.title} from this phone?`)) return;
+  store.topics = store.topics.filter((item) => item.id !== id);
+  saveFeedStore(store);
+  renderFeed();
+}
+
+document.getElementById("feed-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const input = document.getElementById("feed-topic");
+  if (!input) return;
+  if (addFeedTopic(input.value)) {
+    input.value = "";
+    input.setCustomValidity("");
+    input.focus();
+  }
+});
+document.getElementById("feed-topic")?.addEventListener("input", () => {
+  document.getElementById("feed-topic")?.setCustomValidity("");
+});
+window.addEventListener("resize", () => {
+  if (feedEl && !feedEl.hidden) drawFeedCharts();
+});
 
 (function boot() {
   const store = loadStore();
